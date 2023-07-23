@@ -23,6 +23,5 @@ and average open to buy.
 * Probit Model
 *Training/Testing Split
 * Cross Validation
-## Summary
 ## Lesson Learned
 Looking at descriptive statistics first allows you to get an idea of what your results will be like. 
