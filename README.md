@@ -25,4 +25,4 @@ and average open to buy.
 * Cross Validation
 ## Summary
 ## Lesson Learned
-Looking at descpritive statistics first allows you to get an idea of what your results will be like. 
+Looking at descriptive statistics first allows you to get an idea of what your results will be like. 
