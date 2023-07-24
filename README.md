@@ -18,9 +18,10 @@ and average open to buy.
   - Histograms
   - Scatterplots
   - Correlation plots
-* Linear Probability Model
-* Logit Model
-* Probit Model
+* Panel Data Models
+  - Linear Probability Model
+  -  Logit Model
+  -  Probit Model
 * Confusion Matrix
 * Training/Testing Split
 * Cross Validation
