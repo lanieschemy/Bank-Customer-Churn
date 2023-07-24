@@ -21,7 +21,8 @@ and average open to buy.
 * Linear Probability Model
 * Logit Model
 * Probit Model
+* Confusion Matrix
 *Training/Testing Split
 * Cross Validation
 ## Lesson Learned
-Looking at descriptive statistics first allows you to get an idea of what your results will be like. 
+Doing descriptive statistics at the beginning of a project allows you to get an idea of what your results will be like. 
