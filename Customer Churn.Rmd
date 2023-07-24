@@ -1,0 +1,391 @@
+---
+title: "Customer Churning"
+author: "Lorraine Schemenauer"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Customer Churning
+##Objective
+The objective is to determine whether or not a customer will get churned based on the predictors: months on book, credit limit, customer age, dependent count, and average open to buy. 
+
+Using economic intuition, it  can be predicted that customers that are older are going to have more experience and make better financial decisions compared to younger customers. A higher credit limit means that banks trust the customer and they are less likely to be churned. People with less dependents may not be as likely to be churned since they have less expenses. The higher the average open to buy, which is the difference between the credit limit and the present balance a person has on their account, the less likely a customer will be churned. 
+
+##Preparing Data
+When preparing the data, Attrition flag is changed to a binary variable where 1 represents existing customer and 0 for the customer churned. The binary data allows us to obtain the probability of a customer staying with the bank.
+
+```{r}
+Bank <- read.csv("~/Downloads/Bank.csv", header=FALSE, skip=1)
+View(Bank)
+colnames(Bank)
+
+data6<-data.frame(Bank$V2, Bank$V10, Bank$V14, Bank$V3, Bank$V5, Bank$V16)
+colnames(data6)<-c("Attrition Flag", "Months on the Book", "Credit Limit", "Customer Age", "Dependent Count", "Average Open to Buy")
+
+for(i in 1:nrow(data6))
+  {
+    if(data6$`Attrition Flag` [i] == "Existing Customer")
+    {
+      data6$`Attrition Flag` [i]=1
+    }
+    else
+    {
+      data6$`Attrition Flag` [i]=0
+    }
+  }
+View(data6)
+```
+
+#Descriptive Statistics
+## Histograms
+Months of the book is normally distributed with a mean around 35. This means people are with the bank for around 35 months, around 3 years. Credit limit is skewed right with a mean around 6000. This means that $6000 is a frequent credit limit for customers. Customer age is normally distributed with a mean at about 45 years old. This could mean that less people will be churned as they are higher in age with more experience. The dependent count is normally distributed with about 2 or 3 dependents. This could be a sign that having children means people are more responsible and reliable so it is possible less people in this bank will be churned. Average open to buy is skewed right with a mean of 5000. This means people are not reaching their credit limit so less people will be churned. The attrition flag is skewed left with the mean at 1. This means people are less likely to be churned at this bank based on what has already been described from the predictors.  
+
+```{r}
+library(MASS)
+hist(data6$`Months on the Book`, prob = TRUE)
+fit1<-fitdistr(data6$`Months on the Book`, densfun="normal")
+curve(dnorm(x,fit1$estimate[1], fit1$estimate[2]), col="red", add=T)
+
+hist(data6$`Credit Limit`, prob = TRUE)
+fit1<-fitdistr(data6$`Credit Limit`, densfun="normal")
+curve(dnorm(x,fit1$estimate[1], fit1$estimate[2]), col="red", add=T)
+
+hist(data6$`Customer Age`, prob = TRUE)
+fit1<-fitdistr(data6$`Customer Age`, densfun="normal")
+curve(dnorm(x,fit1$estimate[1], fit1$estimate[2]), col="red", add=T)
+
+hist(data6$`Dependent Count`, prob = TRUE)
+fit1<-fitdistr(data6$`Dependent Count`, densfun="normal")
+curve(dnorm(x,fit1$estimate[1], fit1$estimate[2]), col="red", add=T)
+
+hist(data6$`Average Open to Buy`, prob = TRUE)
+fit1<-fitdistr(data6$`Average Open to Buy`, densfun="normal")
+curve(dnorm(x,fit1$estimate[1], fit1$estimate[2]), col="red", add=T)
+
+hist(as.numeric(data6$`Attrition Flag`), prob = TRUE)
+fit1<-fitdistr(as.numeric(data6$`Attrition Flag`), densfun="normal")
+curve(dnorm(x,fit1$estimate[1], fit1$estimate[2]), col="red", add=T)
+```
+
+## Box Plots
+Credit limit has a median around 5000 but a lot of outliers up to 35000. This makes sense since the average customer is around 45 years old, so they are able to obtain a higher credit limit. Months on the book has a median of 35 months with 25% lower quartile being around 20 months and the upper quartile at around 55 months. The attrition flag again shows that majority customers will not be churned. The customer age has a median at 45 years old. The dependent count has a median at 2. The average open to buy has a lot of outliers which is a good sign that less people will be churned.
+
+```{r}
+boxplot(data6$`Credit Limit`, main = "Credit Limit")
+
+boxplot(data6$`Months on the Book`, main = "Months on the Book")
+
+boxplot(as.numeric(data6$`Attrition Flag`), main = "Attrition Flag")
+
+boxplot(data6$`Customer Age`, main = "Customer Age")
+
+boxplot(data6$`Dependent Count`, main = "Dependent Count")
+
+boxplot(data6$`Average Open to Buy`, main = "Average Open to Buy")
+
+```
+
+## Scatterplots
+For months on the book versus attrition flag, there the scatter plot does not show a difference between someone who is churned versus someone who is depending on the months of the bank. For credit limit versus attrition flag, someone who is going to be churned has a lower credit limit while someone who is not going to be churned has a higher credit limit. For age versus attrition flag, those who are not going to be churned have more outliers, meaning that older people are less likely to be churned. For dependent count versus attrition flag, the scatter plot does not show a difference between someone being churned and someone not being churned. This could mean that the dependent count could not have as much of an influence. For average open to buy versus attrition flag, the scatter plot has a higher concentration of average open to buy people for people who are not going to be churned. 
+
+```{r}
+library(car)
+library(gplots)
+plot(data6$`Months on the Book`, data6$`Attrition Flag`, xlab="Months on the Book", ylab="Attrition flag", main="Scatterplot of Attrition Flag vs Months on the Book")
+plot(data6$`Credit Limit`, data6$`Attrition Flag`, xlab="Credit Limit", ylab="Attrition Flag", main="Scatterplot of Credit Limit vs Attrition Flag")
+plot(data6$`Customer Age`, data6$`Attrition Flag`, xlab="Customer Age", ylab="Attrition Flag", main="Scatterplot of Customer Age vs Attrition Flag")
+plot(data6$`Dependent Count`, data6$`Attrition Flag`, xlab="Dependent Count", ylab="Attrition Flag", main="Scatterplot of Dependent Count vs Attrition Flag")
+plot(data6$`Average Open to Buy`, data6$`Attrition Flag`, xlab="Average Open to Buy", ylab="Attrition Flag", main="Scatterplot of Attrition Flag vs Average Open to Buy")
+```
+
+## Correlation Plots
+Attrition flag has only a weakly positive correlation with credit limit. The month on the book has a positive correlation with customer age and negative correlation with dependent count. The credit limit has a strong positive correlation with average open to buy and a slight positive correlation with dependent count. The customer age has a strong positive correlation with months on the book and a slight negative correlation with dependent count. Dependent count has low negative correlation with months on the book and customer age while it also has a slight positive correlation with credit limit and average open to buy. The average open to buy has a strong positive correlation with credit limit and a slight positive correlation with dependent count.
+
+```{r}
+library(corrplot)
+corrborr<-data.frame(as.numeric(data6$`Attrition Flag`), data6$`Months on the Book`, data6$`Credit Limit`, data6$`Customer Age`, data6$`Dependent Count`, data6$`Average Open to Buy`)
+M1 = cor(corrborr)
+corrplot(M1, method = 'shade', main = "Credit Card")
+```
+
+## Statistical Summary
+The statistical summary confirms coincides with the visuals observed from the box plot, scatter plot, and histograms. The means of this output leans towards the idea that people are less likely to be churned at this bank. The following models will help confirm this hypothesis. 
+
+```{r}
+summary(data6)
+```
+
+# Linear Probability Model
+The linear probability model is the typical OLS. The variables credit limit, dependent count, average open to buy, and customer age (with .1 significance level) are statistically significant, given the low p value. With the linear probability model, the betas can be interpreted directly. For example, a unit change in credit limit means a 1.190e-04 percent increase in attrition flag. 
+
+```{r}
+linearProb <- lm(`Attrition Flag`~ `Months on the Book`+`Credit Limit`+ `Customer Age`+ `Dependent Count`+ `Average Open to Buy`, data=data6)
+summary(linearProb)
+```
+
+### LPM Plots
+Plotting the linear probability model for months on the book, customer age, and dependent count, shows the fitted value line has a very small slope with a large intercept. Comparing the points to this line gives an idea of how well 0 and 1 are classified. The y hat values are closer what was classified as 1 while further away from what was classified as 0. This matches that what was assigned as 0 is more likely to be misclassified. This conclusion also matches the results from the confusion matrix. For the credit limit and average open to buy, the y hats pass the 0 and 1 bounds, given it is a LPM. This can be fixed later with the probit/logit model. 
+
+```{r}
+plot(data6$`Months on the Book`, data6$`Attrition Flag`, pch=20)
+abline(linearProb, col="red", lwd=2)
+
+plot(data6$`Credit Limit`, data6$`Attrition Flag`, pch=20)
+abline(linearProb, col="red", lwd=2)
+
+plot(data6$`Average Open to Buy`, data6$`Attrition Flag`, pch=20)
+abline(linearProb, col="red", lwd=2)
+
+plot(data6$`Dependent Count`, data6$`Attrition Flag`, pch=20)
+abline(linearProb, col="red", lwd=2)
+
+plot(as.numeric(data6$`Customer Age`), data6$`Attrition Flag`, pch=20)
+abline(linearProb, col="red", lwd=2)
+
+```
+
+## Confusion Matrix for LPM
+When conducting the confusion matrix with a threshold of 0.5, the row for 0 did not show. Yet, an increase of a 0.7 threshold resulted in a full matrix. With the 0.7 threshold, the accuracy is 80%, obtained by adding what was classified correctly divided by the total. 
+
+```{r}
+#confusion matrix
+confint(linearProb)
+ols.pred.classes <- ifelse(fitted(linearProb) > .7, 1, 0)
+table(ols.pred.classes, data6$`Attrition Flag`)
+```
+
+# Probit Model
+The probit model is better than the LPM given that it bounds the intervals between 0 and 1 and it is able to capture nonlinear values of x. With probit, the betas can only be interpreted by the direction of the betas. Thus, customer age, dependent count, and average open to buy have a negative effect while months on the book and credit limit have a positive effect. As a way to further interpret the betas, the average marginal effects is calculated. This gives the direct estimates of the variables. For example, a unit increase in credit limit will have a 1.067924e-04 percentage increase on the probability that a customer will not be churned.
+
+```{r}
+probit.mod = glm(as.numeric(`Attrition Flag`)~ `Months on the Book`+`Credit Limit`+ `Customer Age`+ `Dependent Count`+ `Average Open to Buy`, data=data6, family = binomial(link = "probit"))
+summary(probit.mod)
+confint(probit.mod)
+sum_phi <- mean(dnorm(predict(probit.mod,, type = "link")))
+ame = sum_phi*coef(probit.mod)
+ame
+```
+
+## Confusion Matrix
+The confusion matrix gives an accuracy level of 80%. This is the same accuracy as the linear probability model. However, since the probit model bounds between 0 and 1, it is preferred over the linear probability model.
+
+```{r}
+#confusion matrix
+probit.mod.classes <- ifelse(fitted(probit.mod ) > 0.7, 1, 0)
+table(probit.mod.classes, data6$`Attrition Flag`)
+```
+
+## Probit model plots
+The plot shows that the probit model is able to fit a nonlinear function which now can capture more of the missclassifications as seen with just the linear probability model. With the LPM, the fitted values were only a horizontal line which made it difficult to account for the 0's and 1's classification. Here, most of the points are closer to the fitted values. For months on the book, the fitted value is closer to the 1 classification, meaning that the customer is not likely to be churned.
+For the credit limit, all of the points for 0, the customers who will be churned, are misclassified because the fitted value do not hover around 0. 
+The customer who will not be churned has a credit limit up to 10,000 is classified because that it where the fitted values lie. For the customer age, the customer who will not be churned (1), are close to the fitted values so they are classified correctly. In contrast, the customer who will be churned does not have any points that are close to the fitted value. 
+For the dependent count, having 0 children is misclassified for both a customer being churned and not churned. Having 4 children is the most classified point for a customer who will not be churned. Lastly, the average open to buy plot shows that all of the points for 0, the customers who will be churned, are misclassified because the fitted value do not hover around 0. The customer who will not be churned has a average open to buy of up to 10,000 is classified because that it where the fitted values lie. 
+
+
+```{r}
+#plot months on the book
+attach(data6)
+library(ggplot2)
+library(survMisc)
+x = seq(length.out=10127) 
+yhat = predict(probit.mod, type = "response", se.fit = TRUE, list(x=data6$`Months on the Book`))
+plot(data6$`Months on the Book`, data6$`Attrition Flag`,pch=20, main="Months on the Book vs Attrition Flag")
+lines(x, yhat$fit, col="red")
+```
+
+```{r}
+#plot credit limit
+attach(data6)
+library(ggplot2)
+library(survMisc)
+x = seq(length.out=10127) 
+yhat = predict(probit.mod, type = "response", se.fit = TRUE, list(x=data6$`Credit Limit`))
+plot(data6$`Credit Limit`, data6$`Attrition Flag`,pch=20, main="Credit Limit vs Attrition Flag")
+lines(x, yhat$fit, col="red")
+
+length(yhat$fit)
+
+
+```
+
+```{r}
+#plot customer age
+attach(data6)
+library(ggplot2)
+library(survMisc)
+x = seq(length.out=10127) 
+yhat = predict(probit.mod, type = "response", se.fit = TRUE, list(x=data6$`Customer Age`))
+plot(data6$`Customer Age`, data6$`Attrition Flag`,pch=20, main="Customer Age vs Attrition Flag")
+lines(x, yhat$fit, col="red")
+
+length(yhat$fit)
+
+```
+
+```{r}
+#plot dependent
+attach(data6)
+library(ggplot2)
+library(survMisc)
+x = seq(length.out=10127) 
+yhat = predict(probit.mod, type = "response", se.fit = TRUE,list(x=data6$`Dependent Count`))
+plot(data6$`Dependent Count`, data6$`Attrition Flag`,pch=20, main="Dependent Count vs Attrition Flag")
+lines(x, yhat$fit, col="red")
+length(yhat$fit)
+
+```
+
+```{r}
+#plot average open to buy
+attach(data6)
+library(ggplot2)
+library(survMisc)
+x = seq(length.out=10127) 
+yhat = predict(probit.mod, type = "response", se.fit = TRUE, list(x=data6$`Average Open to Buy`))
+plot(data6$`Average Open to Buy`, data6$`Attrition Flag`,pch=20, main="Average Open to Buy vs Attrition Flag")
+lines(x, yhat$fit, col="red")
+```
+
+# Logit Model
+The logit model is like the probit model in the fact that it can not interpret the betas directly, but instead can only look at the direction. Customer age, dependent count, and average open to buy have a negative effect while months on the book, credit limit have a positive effect. To further interpret the betas, the average marginal effects delivers the direct effect. For example, a unit increase in credit limit leads to  0.0001051903 percent increase in the probability that the customer will not be churned. 
+
+```{r}
+#logit mod
+logit.mod = glm(as.numeric(`Attrition Flag`)~ `Months on the Book`+`Credit Limit`+ `Customer Age`+ `Dependent Count`+ `Average Open to Buy`, family = binomial(link = "logit"), data=data6)
+summary(logit.mod)
+
+#Marginal effect
+confint(logit.mod)
+sum_phi <- mean(dnorm(predict(logit.mod,, type = "link")))
+ame = sum_phi*coef(logit.mod)
+ame
+```
+
+## Confusion Matrix
+The confusion matrix gives an accuracy level of 79%
+
+```{r}
+
+#Confusion matrix
+ols.pred.classes <- ifelse(fitted(logit.mod) > .7, 1, 0)
+table(ols.pred.classes, data6$`Attrition Flag`)
+```
+
+## Logit Plots
+For the months on the books, the fitted values leans toward the 1 classification that customers are less likely to be churned. For the credit limit, all of the points for 0, the customers who will be churned, are misclassified because the fitted value do not hover around 0. 
+The customer who will not be churned has a credit limit up to 10,000 is classified because that it where the fitted values lie. For dependent count, it is also leaning towards the classification of 1. Specifically, 4 children is best classified. For customer age, the fitted values continue to lean towards 1. It is a good fit overall. Lastly, the average open to buy plot shows us that all of the points for 0, the customers who will be churned, are misclassified because the fitted value do not hover around 0. The customer who will not be churned has a average open to buy of up to 10,000 is classified because that it where the fitted values lie. 
+
+```{r}
+#Logit plot
+attach(data6)
+library(ggplot2)
+library(survMisc)
+x = seq(length.out=10127) 
+yhat = predict(logit.mod, type = "response", se.fit = TRUE, list(x=data6$`Months on the Book`))
+plot(data6$`Months on the Book`, data6$`Attrition Flag`,pch=20)
+lines(x, yhat$fit,lwd=6, col ="red")
+
+length(yhat$fit)
+```
+```{r}
+library(ggplot2)
+library(survMisc)
+x = seq(length.out=10127) 
+yhat = predict(logit.mod, type = "response", se.fit = TRUE, list(x=data6$`Credit Limit`))
+plot(data6$`Credit Limit`, data6$`Attrition Flag`,pch=20)
+lines(x, yhat$fit,lwd=6, col ="red")
+
+length(yhat$fit)
+```
+```{r}
+attach(data6)
+library(ggplot2)
+library(survMisc)
+x = seq(length.out=10127) 
+yhat = predict(logit.mod, type = "response", se.fit = TRUE, list(x=data6$`Dependent Count`))
+plot(data6$`Dependent Count`, data6$`Attrition Flag`,pch=20)
+lines(x, yhat$fit,lwd=6, col ="red")
+
+length(yhat$fit)
+```
+
+```{r}
+library(ggplot2)
+library(survMisc)
+x = seq(length.out=10127) 
+yhat = predict(logit.mod, type = "response", se.fit = TRUE, list(x=data6$`Customer Age`))
+plot(data6$`Customer Age`, data6$`Attrition Flag`,pch=20)
+lines(x, yhat$fit,lwd=6, col ="red")
+
+length(yhat$fit)
+```
+
+```{r}
+library(ggplot2)
+library(survMisc)
+x = seq(length.out=10127) 
+yhat = predict(logit.mod, type = "response", se.fit = TRUE, list(x=data6$`Average Open to Buy`))
+plot(data6$`Average Open to Buy`, data6$`Attrition Flag`,pch=20)
+lines(x, yhat$fit,lwd=6, col ="red")
+
+length(yhat$fit)
+```
+
+# Logit Cross Validation
+The .66 training/testing and the cross validation can assess how well the logit model works. The balanced accuracy of .5 can be used as a reference point to determine the performance of the model. The accuracy measures at .8394 which is a good measurement given it beats the threshold of .5. Also, the specificity measures at 1 which is greater than .5 too. However, the sensitivity is measured at 0, which  is not good. This means that assigning 1 is a good classifier while assigning 0 was not. To conclude, the predictors used mostly influence the classifier of 1. Just from the beginning, this became apparent just by analyzing the variables. For example, when most of the the data showed that the customer age average was around 45, meaning that they would be more financially experienced, the hypothesis was made that it would be less likely for a customer to be churned, making sense why the best classifier is 1. Lastly, as a result of similar accuracies and similar plots with logit and probit, the logit model is the preferred model as it is better to analyze analytically.
+
+```{r}
+#Cross Validation
+library(caret)
+dataFORYOU<-data.frame(data6$`Attrition Flag`, data6$`Months on the Book`, data6$`Credit Limit`, data6$`Customer Age`, data6$`Dependent Count`, data6$`Average Open to Buy`)
+View(dataFORYOU)
+colnames(dataFORYOU)<-c("Attrition Flag", "Months on the Book", "Credit Limit", "Customer Age", "Dependent Count", "Average Open to Buy")
+
+inTraining <- createDataPartition(dataFORYOU$`Attrition Flag`, p = .66, list = FALSE)
+training <- dataFORYOU[ inTraining,]
+testing  <- dataFORYOU[-inTraining,]
+train_control <- trainControl(method = "cv",
+                              number = 5)
+
+
+logit_model <- train(as.factor(`Attrition Flag`)~., data = training,
+                           method = "glm",
+                           family = "binomial",
+                           trControl = train_control)
+
+
+# Predict (probabilities) using the testing data
+pred_att = predict(logit_model, newdata = testing)
+
+# Evaluate performance
+confusionMatrix(data=pred_att, reference=as.factor(testing$`Attrition Flag`))
+
+```
+
+# Logit Predictions 
+Obtaining the preferred model, predictions can now be made. The average and median values be used to predict each variable. All predictors are included in these predictions.
+For the first four periods, the predicted probabilities, using the mean values, that a customer will not be churned are 0.8162438, 0.8047168, 0.6596746, and 0.9550266. The standard errors for these four periods are also 0.006225332, 0.011695526, 0.011827132, 0.003653452. 
+For the second prediction using the median values from the statistical summary, the predictions are 0.8162438, 0.8047168, 0.6596746, and 0.9550266 for the first four periods. The standard errors are 0.006225332, 0.011695526, 0.011827132, and 0.003653452.
+The small standard errors show that these predictions are pretty reliable and continue to support the initial hypothesis that it is less likely for a customer to be churned at this bank.
+
+```{r}
+attach(data6)
+x.mean<-data.frame(`Credit Limit`= 8632)+ data.frame(`Average Open to Buy`= 7469)+ data.frame(`Dependent Count`= 2.346)+ data.frame(`Customer Age`= 46.33) + data.frame(`Months on the Book`= 35.93)
+predictdata1<-predict(logit.mod, x.mean, type="response", se.fit=TRUE)
+head(predictdata1$fit, n=4)
+head(predictdata1$se, n=4)
+
+x.median<-data.frame(`Credit Limit`= 4549)+ data.frame(`Average Open to Buy`= 474)+ data.frame(`Dependent Count`= 2)+ data.frame(`Customer Age`= 46) + data.frame(`Months on the Book`= 36)
+predictdata2<-predict(logit.mod, x.median, type="response", se.fit=TRUE)
+head(predictdata2$fit, n=4)
+head(predictdata2$se, n=4)
+```
+
+
+
+
+
+
