@@ -22,7 +22,7 @@ and average open to buy.
 * Logit Model
 * Probit Model
 * Confusion Matrix
-*Training/Testing Split
+* Training/Testing Split
 * Cross Validation
 ## Lesson Learned
 It is important to use descriptive statistics at the beginning of a project to get an idea of what the results will look like. A better understanding of variables allows for a hypothesis to be made, making the project more interesting.
