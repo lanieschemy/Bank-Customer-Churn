@@ -1,5 +1,5 @@
 ## Customer Churning
-Estimated the likelihood an existing customer will be churned based on predictors such as months on book, credit limit, customer age, dependent count,
+Estimated the likelihood an existing customer will be churned at a bank based on predictors such as months on book, credit limit, customer age, dependent count,
 and average open to buy.
 
 ## How It's Made
